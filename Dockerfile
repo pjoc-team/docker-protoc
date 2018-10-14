@@ -1,6 +1,6 @@
 ARG alpine=3.8
-ARG go=1.10.3
-ARG grpc
+ARG go=1.11.1
+ARG grpc=1.15
 
 FROM golang:$go-alpine$alpine AS build
 
