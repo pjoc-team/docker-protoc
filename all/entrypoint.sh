@@ -77,6 +77,10 @@ while test $# -gt 0; do
             EXTRA_INCLUDES="$EXTRA_INCLUDES -I$1"
             shift
             ;;
+        -a)
+            ADDITION_ARGS="$1"
+            shift
+            ;;
         --with-gateway)
             GEN_GATEWAY=true
             shift
@@ -103,10 +107,6 @@ while test $# -gt 0; do
             ;;
         --debug)
             set -x
-            shift
-            ;;
-        -a)
-            ADDITION_ARGS="$1"
             shift
             ;;
         *)
@@ -221,6 +221,8 @@ else
     PROTO_INCLUDE="-I . $PROTO_INCLUDE"
     PROTO_FILES=($FILE)
 fi
+
+echo "ADDITION_ARGS: ${ADDITION_ARGS}"
 
 protoc $PROTO_INCLUDE \
     $GEN_STRING \
