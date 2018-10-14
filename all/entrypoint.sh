@@ -14,6 +14,7 @@ printUsage() {
     echo " -l LANGUAGE          The language to generate (${SUPPORTED_LANGUAGES[@]})"
     echo " -o DIRECTORY         The output directory for generated files. Will be automatically created."
     echo " -i includes          Extra includes"
+    echo " -a args              Addition args"
     echo " --lint CHECKS        Enable linting protoc-lint (CHECKS are optional - see https://github.com/ckaznocha/protoc-gen-lint#optional-checks)"
     echo " --with-gateway       Generate grpc-gateway files (experimental)."
     echo " --with-docs FORMAT   Generate documentation (FORMAT is optional - see https://github.com/pseudomuto/protoc-gen-doc#invoking-the-plugin)"
@@ -29,6 +30,7 @@ SUPPORTED_LANGUAGES=("go" "ruby" "csharp" "java" "python" "objc" "gogo" "php" "n
 EXTRA_INCLUDES=""
 OUT_DIR=""
 GO_SOURCE_RELATIVE=""
+ADDITION_ARGS=""
 
 while test $# -gt 0; do
     case "$1" in
@@ -96,6 +98,10 @@ while test $# -gt 0; do
             ;;
          --go-source-relative)
             GO_SOURCE_RELATIVE="paths=source_relative,"
+            shift
+            ;;
+        -a)
+            ADDITION_ARGS="$1"
             shift
             ;;
         *)
@@ -214,6 +220,7 @@ fi
 protoc $PROTO_INCLUDE \
     $GEN_STRING \
     $LINT_STRING \
+    $ADDITION_ARGS \
     ${PROTO_FILES[@]}
 
 # Python also needs __init__.py files in each directory to import.
