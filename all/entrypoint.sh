@@ -19,6 +19,7 @@ printUsage() {
     echo " --with-gateway       Generate grpc-gateway files (experimental)."
     echo " --with-docs FORMAT   Generate documentation (FORMAT is optional - see https://github.com/pseudomuto/protoc-gen-doc#invoking-the-plugin)"
     echo " --go-source-relative Make go import paths 'source_relative' - see https://github.com/golang/protobuf#parameters"
+    echo " --debug              Debug mode"
 }
 
 GEN_GATEWAY=false
@@ -96,8 +97,12 @@ while test $# -gt 0; do
             fi
             shift
             ;;
-         --go-source-relative)
+        --go-source-relative)
             GO_SOURCE_RELATIVE="paths=source_relative,"
+            shift
+            ;;
+        --debug)
+            set -x
             shift
             ;;
         -a)
