@@ -77,7 +77,7 @@ while test $# -gt 0; do
             EXTRA_INCLUDES="$EXTRA_INCLUDES -I$1"
             shift
             ;;
-        -a)
+        -a) shift
             ADDITION_ARGS="$1"
             shift
             ;;
