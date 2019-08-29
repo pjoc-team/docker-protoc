@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/bash -e
 
-LANGS=("go" "ruby" "csharp" "java" "python" "objc" "node" "gogo" "php")
+LANGS=("go" "ruby" "csharp" "java" "python" "objc" "node" "gogo" "php" "cpp" "descriptor_set")
 
 CONTAINER=${CONTAINER}
 
@@ -19,8 +19,8 @@ testGeneration() {
     echo "Testing language $lang $expected_output_dir $extra_args"
 
     # Test calling a file directly.
-    docker run --rm -v=`pwd`:/defs $CONTAINER -f all/test/test.proto -l $lang -i test $extra_args
-    if [[ ! -d "$expected_output_dir" ]]; then 
+    docker run --rm -v=`pwd`:/defs $CONTAINER -f all/test/test.proto -l $lang -i all/test/ $extra_args
+    if [[ ! -d "$expected_output_dir" ]]; then
         echo "generated directory $expected_output_dir does not exist"
         exit 1
     fi
@@ -36,12 +36,23 @@ testGeneration() {
           current_path=$(dirname $current_path)
         done
     fi
+    if [[ "$extra_args" == *"--with-typescript"* ]]; then
+        # Test that we have generated the .d.ts files.
+        ts_file_count=$(find $expected_output_dir -type f -name "*.d.ts" | wc -l)
+        if [ $ts_file_count -eq 0 ]; then
+            echo ".d.ts files were not generated in $expected_output_dir"
+            exit 1
+        fi
+    fi
     rm -rf `echo $expected_output_dir | cut -d '/' -f1`
     echo "Generating for $lang passed!"
 }
 
 # Test grpc-gateway generation (only valid for Go)
 testGeneration go "gen/pb-go" --with-gateway
+
+# Test TypeScript declaration file generation (only valid for Node)
+testGeneration node "gen/pb-node" --with-typescript
 
 # Generate proto files
 for lang in ${LANGS[@]}; do
@@ -62,7 +73,7 @@ done
 
 
 # Test .jar generation for java
-docker run --rm -v=`pwd`:/defs $CONTAINER -f test/test.proto -l java -i test -o gen/test.jar
+docker run --rm -v=`pwd`:/defs $CONTAINER -f all/test/test.proto -l java -i all/test/ -o gen/test.jar
 if [[ ! -f gen/test.jar ]]; then
   echo "Expected gen/test.jar to be a jar file."
   exit 1

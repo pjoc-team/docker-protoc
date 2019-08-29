@@ -1,6 +1,4 @@
-#!/bin/bash
-
-set -e
+#!/bin/bash -e
 
 printUsage() {
     echo "gen-proto generates grpc and protobuf @ Namely"
@@ -20,18 +18,44 @@ printUsage() {
     echo " --with-docs FORMAT   Generate documentation (FORMAT is optional - see https://github.com/pseudomuto/protoc-gen-doc#invoking-the-plugin)"
     echo " --go-source-relative Make go import paths 'source_relative' - see https://github.com/golang/protobuf#parameters"
     echo " --debug              Debug mode"
+    echo " -h, --help                     Show help"
+    echo " -f FILE                        The proto source file to generate"
+    echo " -d DIR                         Scans the given directory for all proto files"
+    echo " -l LANGUAGE                    The language to generate (${SUPPORTED_LANGUAGES[@]})"
+    echo " -o DIRECTORY                   The output directory for generated files. Will be automatically created."
+    echo " -i includes                    Extra includes"
+    echo " --lint CHECKS                  Enable linting protoc-lint (CHECKS are optional - see https://github.com/ckaznocha/protoc-gen-lint#optional-checks)"
+    echo " --with-gateway                 Generate grpc-gateway files (experimental)."
+    echo " --with-docs FORMAT             Generate documentation (FORMAT is optional - see https://github.com/pseudomuto/protoc-gen-doc#invoking-the-plugin)"
+    echo " --with-typescript              Generate TypeScript declaration files (.d.ts files) - see https://github.com/improbable-eng/ts-protoc-gen#readme"
+    echo " --go-source-relative           Make go import paths 'source_relative' - see https://github.com/golang/protobuf#parameters"
+    echo " --go-package-map               Map proto imports to go import paths"
+    echo " --no-google-includes           Don't include Google protobufs"
+    echo " --descr-include-imports        When using --descriptor_set_out, also include all dependencies of the input files in the set, so that the set is
+                                             self-contained"
+    echo " --descr-include-source-info    When using --descriptor_set_out, do not strip SourceCodeInfo from the FileDescriptorProto. This results in vastly
+                                             larger descriptors that include information about the original location of each decl in the source file as  well
+                                             as surrounding comments."
+    echo " --descr-filename               The filename for the descriptor proto when used with -l descriptor_set. Default to descriptor_set.pb"
 }
+
 
 GEN_GATEWAY=false
 GEN_DOCS=false
 DOCS_FORMAT="html,index.html"
+GEN_TYPESCRIPT=false
 LINT=false
 LINT_CHECKS=""
-SUPPORTED_LANGUAGES=("go" "ruby" "csharp" "java" "python" "objc" "gogo" "php" "node")
+SUPPORTED_LANGUAGES=("go" "ruby" "csharp" "java" "python" "objc" "gogo" "php" "node" "web" "cpp" "descriptor_set")
 EXTRA_INCLUDES=""
 OUT_DIR=""
 GO_SOURCE_RELATIVE=""
 ADDITION_ARGS=""
+GO_PACKAGE_MAP=""
+NO_GOOGLE_INCLUDES=false
+DESCR_INCLUDE_IMPORTS=false
+DESCR_INCLUDE_SOURCE_INFO=false
+DESCR_FILENAME="descriptor_set.pb"
 
 while test $# -gt 0; do
     case "$1" in
@@ -93,6 +117,10 @@ while test $# -gt 0; do
             fi
             shift
             ;;
+        --with-typescript)
+            GEN_TYPESCRIPT=true
+            shift
+            ;;
         --lint)
             LINT=true
             if [ "$#" -gt 1 ] && [[ $2 != -* ]]; then
@@ -107,6 +135,30 @@ while test $# -gt 0; do
             ;;
         --debug)
             set -x
+            shift
+            ;;
+        --go-package-map)
+            if [ "$#" -gt 1 ] && [[ $2 != -* ]]; then
+                GO_PACKAGE_MAP=$2,
+		        shift
+            fi
+            shift
+            ;;
+        --no-google-includes)
+            NO_GOOGLE_INCLUDES=true
+            shift
+            ;;
+        --descr-include-imports)
+            DESCR_INCLUDE_IMPORTS=true
+            shift
+            ;;
+        --descr-include-source-info)
+            DESCR_INCLUDE_SOURCE_INFO=true
+            shift
+            ;;
+        --descr-filename)
+            shift
+            DESCR_FILENAME=$1
             shift
             ;;
         *)
@@ -139,8 +191,13 @@ if [[ ! ${SUPPORTED_LANGUAGES[*]} =~ "$GEN_LANG" ]]; then
 fi
 
 if [[ "$GEN_GATEWAY" == true && "$GEN_LANG" != "go" ]]; then
-  echo "Generating grpc-gateway is Go specific."
-  exit 1
+    echo "Generating grpc-gateway is Go specific."
+    exit 1
+fi
+
+if [[ "$GEN_TYPESCRIPT" == true && "$GEN_LANG" != "node" ]]; then
+    echo "Generating TypeScript declaration files is Node specific."
+    exit 1
 fi
 
 PLUGIN_LANG=$GEN_LANG
@@ -158,8 +215,6 @@ if [[ $OUT_DIR == '' ]]; then
     fi
 fi
 
-echo "Generating $GEN_LANG files for ${FILE}${PROTO_DIR} in $OUT_DIR"
-
 if [[ ! -d $OUT_DIR ]]; then
   # If a .jar is specified, protoc can output to the jar directly. So
   # don't create it as a directory.
@@ -173,7 +228,7 @@ fi
 GEN_STRING=''
 case $GEN_LANG in
     "go")
-        GEN_STRING="--go_out=${GO_SOURCE_RELATIVE}plugins=grpc:$OUT_DIR"
+        GEN_STRING="--go_out=${GO_SOURCE_RELATIVE}${GO_PACKAGE_MAP}plugins=grpc:$OUT_DIR"
         ;;
     "gogo")
         GEN_STRING="--gogofast_out=${GO_SOURCE_RELATIVE}\
@@ -183,6 +238,7 @@ Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,\
 Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,\
 Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types,\
 Mgoogle/protobuf/field_mask.proto=github.com/gogo/protobuf/types,\
+${GO_PACKAGE_MAP}\
 plugins=grpc+embedded\
 :$OUT_DIR"
         ;;
@@ -191,6 +247,18 @@ plugins=grpc+embedded\
         ;;
     "node")
         GEN_STRING="--grpc_out=$OUT_DIR --js_out=import_style=commonjs,binary:$OUT_DIR --plugin=protoc-gen-grpc=`which grpc_${PLUGIN_LANG}_plugin`"
+        ;;
+    "web")
+        GEN_STRING="--grpc-web_out=import_style=typescript,mode=grpcwebtext:$OUT_DIR --js_out=import_style=commonjs:$OUT_DIR --plugin=protoc-gen-grpc-web=`which grpc_${PLUGIN_LANG}_plugin`"
+        ;;
+    "descriptor_set")
+        GEN_STRING="--descriptor_set_out=$OUT_DIR/$DESCR_FILENAME"
+        if [[ $DESCR_INCLUDE_IMPORTS ]]; then
+            GEN_STRING="$GEN_STRING --include_imports"
+        fi
+        if [[ $DESCR_INCLUDE_SOURCE_INFO ]]; then
+            GEN_STRING="$GEN_STRING --include_source_info"
+        fi
         ;;
     *)
         GEN_STRING="--grpc_out=$OUT_DIR --${GEN_LANG}_out=$OUT_DIR --plugin=protoc-gen-grpc=`which grpc_${PLUGIN_LANG}_plugin`"
@@ -202,6 +270,10 @@ if [[ $GEN_DOCS == true ]]; then
     GEN_STRING="$GEN_STRING --doc_opt=$DOCS_FORMAT --doc_out=$OUT_DIR/doc"
 fi
 
+if [[ $GEN_TYPESCRIPT == true ]]; then
+    GEN_STRING="$GEN_STRING --ts_out=$OUT_DIR"
+fi
+
 LINT_STRING=''
 if [[ $LINT == true ]]; then
     if [[ $LINT_CHECKS == '' ]]; then
@@ -211,12 +283,20 @@ if [[ $LINT == true ]]; then
     fi
 fi
 
-PROTO_INCLUDE="-I /usr/local/include/ \
-    $EXTRA_INCLUDES"
+PROTO_INCLUDE=""
+if [[ $NO_GOOGLE_INCLUDES == false ]]; then
+  PROTO_INCLUDE="-I /opt/include"
+fi
+
+PROTO_INCLUDE="$PROTO_INCLUDE $EXTRA_INCLUDES"
 
 if [ ! -z $PROTO_DIR ]; then
     PROTO_INCLUDE="$PROTO_INCLUDE -I $PROTO_DIR"
-    PROTO_FILES=(`find ${PROTO_DIR} -name "*.proto"`)
+    FIND_DEPTH=""
+    if [[ $GEN_LANG == "go" ]]; then
+        FIND_DEPTH="-maxdepth 1"
+    fi
+    PROTO_FILES=(`find ${PROTO_DIR} ${FIND_DEPTH} -name "*.proto"`)
 else
     PROTO_INCLUDE="-I . $PROTO_INCLUDE"
     PROTO_FILES=($FILE)
@@ -237,7 +317,6 @@ protoc $PROTO_INCLUDE \
 if [[ $GEN_LANG == "python" ]]; then
     # Create __init__.py for everything in the OUT_DIR
     # (i.e. gen/pb_python/foo/bar/).
-    echo "Out dir is '$OUT_DIR'"
     find $OUT_DIR -type d | xargs -n1 -I '{}' touch '{}/__init__.py'
     # And everything above it (i.e. gen/__init__py")
     d=`dirname $OUT_DIR`

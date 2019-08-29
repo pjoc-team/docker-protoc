@@ -1,7 +1,12 @@
-#!/bin/sh
+#!/bin/bash -e
 
 if [ -z $1 ]; then
     echo "You must specify a grpc version."
+    exit 1
+fi
+
+if [ -z $2 ]; then
+    echo "You must specify a grpc-java version."
     exit 1
 fi
 
@@ -33,6 +38,6 @@ cd /tmp/grpc
 make grpc_cli
 
 cd /tmp
-git clone -b v$1.x --recursive https://github.com/grpc/grpc-java.git
+git clone -b v$2.x --recursive https://github.com/grpc/grpc-java.git
 cd /tmp/grpc-java/compiler
 ../gradlew java_pluginExecutable

@@ -1,5 +1,7 @@
 # gRPC/Protocol Buffer Compiler Containers
 
+[![Build Status](https://dev.azure.com/namely/protoc-all/_apis/build/status/namely.docker-protoc?branchName=master)](https://dev.azure.com/namely/protoc-all/_build/latest?definitionId=1&branchName=master)
+
 This repository contains support for various Docker images that wrap `protoc`,
 `prototool`, `grpc_cli` commands with [gRPC](https://github.com/grpc/grpc) support
 in a variety of languages removing the need to install and manage these commands locally. 
@@ -18,7 +20,7 @@ language you want to generate.
 * [Google APIs](https://github.com/googleapis/googleapis) included in `/usr/local/include/google`
 * [Protobuf library artificats](https://github.com/google/protobuf/tree/master/src/google/protobuf) included in `/usr/local/include/google/protobuf`
 * Support for all C based gRPC libraries with Go and Java native libraries
-*
+
 If you're having trouble, see [Docker troubleshooting](#docker-troubleshooting) below.
 
 > Note - throughout this document, commands for bash are prefixed with `$` and commands
@@ -27,8 +29,8 @@ If you're having trouble, see [Docker troubleshooting](#docker-troubleshooting) 
 
 ## Tag Conventions
 
-For `protoc`, `grpc_cli` and `prototool` a pattern of <GRPC\_VERSION>_<CONTAINER\_VERSION> is used for all images.
-Example is namely/protoc-all:1.14_0 for gRPC version `1.14`. The `latest` tag will always point to the most recent version.
+For `protoc`, `grpc_cli` and `prototool` a pattern of `<GRPC\_VERSION>_<CONTAINER\_VERSION>` is used for all images.
+Example is `namely/protoc-all:1.15_0` for gRPC version `1.15`. The `latest` tag will always point to the most recent version.
 
 ## Usage
 
@@ -38,11 +40,10 @@ Pull the container:
 $ docker pull namely/protoc-all
 ```
 
-After that, travel to the directory that contains your `.proto` definition
+After that, change working directory to the one that contains your `.proto` definition
 files.
 
-So if you have a directory: `~/my_project/protobufs/` that has:
-`myproto.proto`, you'd want to run this:
+So if you have a directory: `~/my_project/protobufs/` that has: `myproto.proto`, you'd want to run this:
 
 ```sh
 $ cd ~/my_project/protobufs
@@ -116,13 +117,13 @@ docker run my-grpc-gateway --backend=grpc-service:50051
 ```
 
 where `--backend` refers to your actual gRPC server's address. The gRPC gateway
-listens on port 80 for HTTP traffic.
+listens on port `80` for HTTP traffic.
 
 ### Configuring grpc-gateway
 
 The gateway is configured using [spf13/viper](https://github.com/spf13/viper), see [gwy/templates/config.yaml.tmpl](https://github.com/namely/docker-protoc/blob/master/gwy/templates/config.yaml.tmpl) for configuration options.
 
-To configure your gateway to run under a prefix, set proxy.api-prefix to that prefix. For example, if you have `(google.api.http) = '/foo/bar'`, and set `proxy.api-prefix` to `/api/'`, your gateway will listen to requests on `'/api/foo/bar'`.
+To configure your gateway to run under a prefix, set proxy.api-prefix to that prefix. For example, if you have `(google.api.http) = '/foo/bar'`, and set `proxy.api-prefix` to `/api/'`, your gateway will listen to requests on `'/api/foo/bar'`. This can also be set with the environment variable `<SERVICE>_PROXY_API-PREFIX` where `<SERVICE>` is the name of the service generating the gateway. 
 
 See [gwy/test.sh](https://github.com/namely/docker-protoc/blob/master/gwy/test.sh) for an example of how to set the prefix with an environment variable.
 
@@ -130,10 +131,10 @@ See [gwy/test.sh](https://github.com/namely/docker-protoc/blob/master/gwy/test.s
 
 The gateway will turn any HTTP headers that it receives into gRPC metadata. Any
 [permanent HTTP headers](https://github.com/namely/docker-protoc/blob/2e7f0c921984c9d9fc7e42e6a7b9474292f11751/gwy/templates/main.go.tmpl#L61)
-will be prefixed with 'grpcgateway-' in the metadata, so that your server receives both
+will be prefixed with `grpcgateway-` in the metadata, so that your server receives both
 the HTTP client to gateway headers, as well as the gateway to gRPC server headers.
 
-Any headers starting with 'Grpc-' will be prefixed with an 'X-', this is because 'grpc-' is a reserved metadata prefix.
+Any headers starting with `Grpc-` will be prefixed with an `X-`, this is because `grpc-` is a reserved metadata prefix.
 
 All other headers will be converted to metadata as is.
 
@@ -152,11 +153,19 @@ There are four values:
     For CORS, you will want to configure your `cors.allow-methods` to be the HTTP verbs set in your proto (i.e. `GET`, `PUT`, etc.), as well as `OPTIONS`, so that your service can handle the [preflight request](https://developer.mozilla.org/en-US/docs/Glossary/Preflight_request).
 
     If you are not using CORS, you can leave these configuration values at their default, and your gateway will not accept CORS requests.
+###  Other Response Headers
 
+You can configure additional headers to be sent in the HTTP response.  
+Set environment variable with prefix `<SERVICE>_RESPONSE-HEADERS_` (e.g `SOMESERVICE_RESPONSE-HEADERS_SOME-HEADER-KEY`).  
+You can also set headers in the your configuration file (e.g `response-headers.some-header-key`)
+
+### Environment Variables
+
+The gateway project used [spf13/viper](https://github.com/spf13/viper) for configuration. The generated gateway code includes a config file that can be overridden with cli flags or environment variables. For environment variable overrides use a `<SERVICE>_` prefix, upcase the setting, and replace `.` with `_`.
 
 ## grpc_cli
 
-This repo also contains a Dockerfile for building a grpc_cli.
+This repo also contains a Dockerfile for building a `grpc_cli`.
 
 Run it with
 
@@ -165,9 +174,9 @@ docker run -v `pwd`:/defs --rm -it namely/grpc-cli call docker.for.mac.localhost
 LinkShortener.ResolveShortLink "short_link:'asdf'" --protofiles=link_shortener.proto
 ```
 
-You can pass multiple files to --protofiles by separating them with commas, for example
+You can pass multiple files to `--protofiles` by separating them with commas, for example
 `--protofiles=link_shortener.proto,foo/bar/baz.proto,biz.proto`. All of the protofiles
-must be relative to pwd, since pwd is mounted into the container.
+must be relative to `pwd`, since `pwd` is mounted into the container.
 
 See the [grpc_cli documentation](https://github.com/grpc/grpc/blob/master/doc/command_line_tool.md)
 for more information. You may find it useful to bind this to an alias:
@@ -198,10 +207,10 @@ $ make build
 This will build all of the known containers.
 
 ```sh
-$ make test
+$ CONTAINER=namely/protoc-all:VVV make test
 ```
 
-This will run tests that containers can build for each language.
+Where `VVV` is your version. This will run tests that containers can build for each language.
 
 ```sh
 $ make push
@@ -215,4 +224,4 @@ this repo.
 
 Docker must be configured to use Linux containers.
 
-If on Windows, you must have your C: drive shared with Docker. Open the Docker settings (right-click Docker icon in notification area) and pick the Shared Drives tab. Ensure C is listed and the box is checked. If you are still experiencing trouble, click "Reset credentials..." on that tab and re-enter your local Windows username and password.
+If on Windows, you must have your `C:` drive shared with Docker. Open the Docker settings (right-click Docker icon in notification area) and pick the Shared Drives tab. Ensure `C:` is listed and the box is checked. If you are still experiencing trouble, click "Reset credentials..." on that tab and re-enter your local Windows username and password.
