@@ -1,13 +1,6 @@
 language: shell
 services:
 - docker
-#stages:
-#- name: build
-#  if: tag IS blank
-#- name: release
-#  if: tag IS present
-
-
 env:
   global:
   - BASE_REPO=$DOCKER_USER/${TRAVIS_REPO_SLUG##*/}
@@ -15,11 +8,14 @@ env:
   - DEV_REPO=${BASE_REPO}:$DOCKER_TAG
   - RELEASE_REPO=${BASE_REPO}:$TRAVIS_TAG
   - LATEST_REPO=${BASE_REPO}:latest
-
+  - secure: TCyOsFnLXL6Xsk4RTnaCHTpTxYeAPYcln0Ol3dNwu+cFxRnMumy/G8DA1W1DVNrGKYjrj9OaODN5w0hv3M/SxGLYZpq25F6hCuFu13cMO56zDP22zaULCkd6bZQEcP4pmU6L2TQ1rXNMTtFCvzntH/99OR9kSp9M/xrVQoiBfSprZ1Sek5pUguAgOipZfI8rhYfYMQ7BS/2Ze2EGBbxt/Yf/mQnrtjtJelcUDXBMlv94oMucJeyxXcBs7TzzD5qkG6lt5E1C20yMVDxidR5OUmvaCDWsogqC9SpaySNDmZWonfp34NC9pknwj13tj+pr1gKMpbitpNV4NiqJyLSAluS9x5WIHotgVDNy52mkvZaEolgm1AXz6CcwrJUqkBJ454Yc0JaHKOpqVVDrXj/7Uf5mz+KSbiJ1ZDeomtuySS4eMlc7+l35+682M9HJXZHALGdKVCfNP0NcAPFiBokUMHs4iXN2ZapR98C3k9CnsL7Rkby7RJQLMD47cMCO3geUEqL+lSeexd94VIDmeiXp0+aM3nNpTUwlovEgb+S4YDmTL1gDd7kEgO7EYSpIBaFTH0IP2q++khin/mC3l5ZnpJ2Tfyp7htzuaAuwJICwP+sjEy6r1J1LdGc9Z6qBx/4bL9A+4Eeudfb00OdZR+b337fEwdwcwIb24veElYglWQs=
+  - secure: fQW/NEyMArk0oUdgMEJGbAo1LT8xinY21weDykW4CND+t+ND3LpkzyW5zgs25WalTRpQrQG/9DP0/84PwgGY2LlIRhoxtmBenktbOGbHweBYWMdA7gaSCBvK1Ugj2l90ubMI3u7PlEXzOukw++M2Uf0e4VHPLIJm6koJ+C3cMzH4rE3DpADDRdP/XNN3jxPhNr84QNEHfPVO7p/HAF55E5xcc3FovgLEQMISHl3R4ymHzi85BhWYWmAv4a4yRZUIxWr85qK7cAJj+35v49HbJTUNsBjzgF36PmB3toeIZjleWd4Kcq6lrnxBbkglb+dlBINmTG+I1sZxoinfJ3IZUieJpAgxKYmSwrvEBQkWgsTQUSxjUfPB60xHnPPy6HH9zNL7gRVCtJzGlH5F+eooYbIE8tGqUciMgvQFYdnDOAnzH/i4oUrXb0RpET9q9BH5e8b3qanJfVOkpSmCSGEGO4IzE5wkfBcrg/9rGQFSS/yOkx0YJnZEWROCiedLK4kFeDSZ66Co64tGzQn0cJ2X5Q5/xbwpV8A57yEIaTcvxc/uDsyRLw56ENZkbk3DMQA+wXe78nkGEmcOMrk7sBtSoJ8/PjPOzZHabFke/5vmIyZXwm3ALER585BvmsMTEm03JLQFq03kO9BIrsZI5xoa2S7fW8lMCbZx6kNbVaDzbhw=
 before_install:
 - env
 - docker login -u$DOCKER_USER -p$DOCKER_PASS
 install:
-- if [[ -z "$TRAVIS_TAG" ]]; then docker build nginx -t $DEV_REPO && docker push $DEV_REPO; fi # build
-- if [[ -n "$TRAVIS_TAG" ]]; then docker pull $DEV_REPO && docker tag $DEV_REPO $RELEASE_REPO && docker tag $DEV_REPO $LATEST_REPO && docker push $RELEASE_REPO && docker push $LATEST_REPO; fi # release
-
+- if [[ -z "$TRAVIS_TAG" ]]; then docker build nginx -t $DEV_REPO && docker push $DEV_REPO;
+  fi
+- if [[ -n "$TRAVIS_TAG" ]]; then docker pull $DEV_REPO && docker tag $DEV_REPO $RELEASE_REPO
+  && docker tag $DEV_REPO $LATEST_REPO && docker push $RELEASE_REPO && docker push
+  $LATEST_REPO; fi
