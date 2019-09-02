@@ -10,6 +10,8 @@ if [ -z $2 ]; then
     exit 1
 fi
 
+CC=/usr/bin/gcc-7 CXX=/usr/bin/g++-7
+
 curl -sSL https://github.com/gflags/gflags/archive/v2.2.2.tar.gz -o gflags.tar.gz && tar -xzvf gflags.tar.gz
 cd gflags-2.2.2/
 cmake .
