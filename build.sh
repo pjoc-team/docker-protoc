@@ -9,6 +9,7 @@ if [ "$RELEASE" == "false" ]; then
           -f Dockerfile \
           --build-arg grpc=${GRPC_VERSION} \
           --build-arg grpc_java=${GRPC_JAVA_VERSION} \
+          --build-arg GCC_VERSION=${GCC_VERSION} \
           --target ${build} \
           .
 

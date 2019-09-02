@@ -10,3 +10,4 @@ CONTAINER=${DOCKER_REPO}${NAMESPACE}
 LATEST=${1:false}
 BUILDS=("protoc-all" "protoc" "prototool" "grpc-cli" "gen-grpc-gateway")
 RELEASE=${RELEASE:-false}
+GCC_VERSION=${GCC_VERSION:-7.4.0}
