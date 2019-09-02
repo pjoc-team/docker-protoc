@@ -1,10 +1,11 @@
 ARG alpine=3.8
-ARG go=1.11.0
+ARG go=1.12
 ARG grpc
 ARG grpc_java
 
 FROM golang:$go-alpine$alpine AS build
 
+ENV GO111MODULE=on
 # TIL docker arg variables need to be redefined in each build stage
 ARG grpc
 ARG grpc_java
