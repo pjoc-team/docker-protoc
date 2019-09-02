@@ -11,7 +11,7 @@ if [ -z $2 ]; then
 fi
 
 curl -sSL https://github.com/gflags/gflags/archive/v2.2.2.tar.gz -o gflags.tar.gz && tar -xzvf gflags.tar.gz
-cd gflags-2.2.1/
+cd gflags-2.2.2/
 cmake .
 make
 make install
