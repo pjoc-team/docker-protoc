@@ -42,7 +42,7 @@ WORKDIR /tmp
 RUN wget -q https://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.gz && \
         tar -xzf gcc-${GCC_VERSION}.tar.gz && \
         rm -f gcc-${GCC_VERSION}.tar.gz && \
-        ./configure \
+        cd gcc-${GCC_VERSION} && ./configure \
         --prefix=/usr/local \
         --build=$(uname -m)-alpine-linux-musl \
         --host=$(uname -m)-alpine-linux-musl \
