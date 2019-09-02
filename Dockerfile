@@ -66,10 +66,9 @@ RUN wget -q https://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.ta
         --enable-threads \
         --enable-tls \
         --with-linker-hash-style=gnu \
-        --with-system-zlib
-
-RUN make --silent -j $(nproc)
-RUN make --silent -j $(nproc) install-strip
+        --with-system-zlib && \
+        make --silent -j $(nproc) && \
+        make --silent -j $(nproc) install-strip
 
 COPY all/install-protobuf.sh /tmp
 RUN chmod +x /tmp/install-protobuf.sh
