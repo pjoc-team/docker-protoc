@@ -1,4 +1,4 @@
-ARG alpine=alpine
+ARG alpine
 ARG go=1.12
 ARG grpc
 ARG grpc_java
