@@ -2,14 +2,6 @@ version: 2
 jobs:
   build:
     machine: true
-    environment:
-      COMPRESS: 'false'
-      TAG: "${CIRCLE_TAG}"
-      BASE_REPO: "$DOCKER_USER/${CIRCLE_PROJECT_REPONAME##*/}"
-      DEV_VERSION: "${CIRCLE_SHA1:0:7}"
-      DEV_REPO: "${BASE_REPO}:$DOCKER_TAG"
-      RELEASE_REPO: "${BASE_REPO}:${TAG}"
-      LATEST_REPO: "${BASE_REPO}:latest"
     steps:
       - checkout
       # start proprietary DB using private Docker image
@@ -18,5 +10,12 @@ jobs:
           echo "$DOCKER_PASS" | docker login --username $DOCKER_USER --password-stdin
 #          docker run -d --name db company/proprietary-db:1.2.3
       - run: |
+          export TAG="${CIRCLE_TAG}"
+          export BASE_REPO="$DOCKER_USER/${CIRCLE_PROJECT_REPONAME##*/}"
+          export DEV_VERSION="${CIRCLE_SHA1:0:7}"
+          export DEV_REPO="${BASE_REPO}:$DOCKER_TAG"
+          export RELEASE_REPO="${BASE_REPO}:${TAG}"
+          export LATEST_REPO="${BASE_REPO}:latest"
+          export DEV_VERSION="${CIRCLE_SHA1:0:7}"
           if [[ -z "$TAG" ]]; then export BUILD_VERSION=${DEV_VERSION}; export RELEASE=false; else export BUILD_VERSION=${TAG}; export RELEASE=true; fi
       - run: ./build.sh && ./push.sh
