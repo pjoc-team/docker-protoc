@@ -18,4 +18,4 @@ jobs:
           export LATEST_REPO="${BASE_REPO}:latest"
           export DEV_VERSION="${CIRCLE_SHA1:0:7}"
           if [[ -z "$TAG" ]]; then export BUILD_VERSION=${DEV_VERSION}; export RELEASE=false; else export BUILD_VERSION=${TAG}; export RELEASE=true; fi
-      - run: ./build.sh && ./push.sh
+          ./build.sh && ./push.sh
