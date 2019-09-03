@@ -50,8 +50,11 @@ RUN go get -u github.com/gogo/protobuf/protoc-gen-gogo
 RUN go get -u github.com/gogo/protobuf/protoc-gen-gogofast
 
 RUN go get -u github.com/ckaznocha/protoc-gen-lint
-RUN go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc
+#RUN go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc
+RUN go get -d github.com/pseudomuto/protoc-gen-doc && cd $GOPATH/src/github.com/pseudomuto/protoc-gen-doc && GO111MODULE=on go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc
 RUN go get -u github.com/mwitkow/go-proto-validators
+RUN go get -d github.com/envoyproxy/protoc-gen-validate && cd $GOPATH/src/github.com/envoyproxy/protoc-gen-validate && make build
+
 RUN go install github.com/mwitkow/go-proto-validators/protoc-gen-govalidators
 
 # Add grpc-web support
