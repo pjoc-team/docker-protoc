@@ -18,5 +18,5 @@ jobs:
           echo "$DOCKER_PASS" | docker login --username $DOCKER_USER --password-stdin
 #          docker run -d --name db company/proprietary-db:1.2.3
       - run: |
-          if [[ -z "$TAG" ]]; then BUILD_VERSION=${DEV_VERSION}; export RELEASE=false; else BUILD_VERSION=${TAG}; export RELEASE=true; fi
+          if [[ -z "$TAG" ]]; then export BUILD_VERSION=${DEV_VERSION}; export RELEASE=false; else export BUILD_VERSION=${TAG}; export RELEASE=true; fi
       - run: ./build.sh && ./push.sh

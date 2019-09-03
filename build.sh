@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 source ./variables.sh
+env
 if [ "$RELEASE" == "false" ]; then
   for build in ${BUILDS[@]}; do
       tag=${CONTAINER}/${build}:${GRPC_VERSION}_${BUILD_VERSION}

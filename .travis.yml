@@ -16,6 +16,6 @@ before_install:
 - chmod +x *.sh
 - docker login -u$DOCKER_USER -p$DOCKER_PASS
 install:
-- if [[ -z "$TRAVIS_TAG" ]]; then BUILD_VERSION=${DEV_VERSION}; export RELEASE=false; fi
-- if [[ -n "$TRAVIS_TAG" ]]; then BUILD_VERSION=${TRAVIS_TAG}; export RELEASE=true;  fi
+- if [[ -z "$TRAVIS_TAG" ]]; then export BUILD_VERSION=${DEV_VERSION}; export RELEASE=false; fi
+- if [[ -n "$TRAVIS_TAG" ]]; then export BUILD_VERSION=${TRAVIS_TAG}; export RELEASE=true;  fi
 - ./build.sh && ./push.sh
