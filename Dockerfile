@@ -1,12 +1,11 @@
-ARG alpine
-ARG go=1.12
+ARG alpine=3.8
+ARG go=1.11.0
 ARG grpc
 ARG grpc_java
 
 
 FROM golang:$go-alpine$alpine AS build
 
-ENV GO111MODULE=on
 # TIL docker arg variables need to be redefined in each build stage
 ARG grpc
 ARG grpc_java
@@ -22,53 +21,14 @@ RUN set -ex && apk --update --no-cache add \
     curl \
     tar \
     libtool \
+    g++ \
     git \
     openjdk8-jre \
     libstdc++ \
     ca-certificates \
-    nss \
-    build-base \
-    dejagnu \
-    isl-dev \
-    make \
-    mpc1-dev \
-    mpfr-dev \
-    texinfo \
-    zlib-dev
+    nss
 
 WORKDIR /tmp
-
-
-RUN wget -q https://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.gz && \
-        tar -xzf gcc-${GCC_VERSION}.tar.gz && \
-        rm -f gcc-${GCC_VERSION}.tar.gz && \
-        cd gcc-${GCC_VERSION} && ls && ./configure \
-        --prefix=/usr/local \
-        --build=$(uname -m)-alpine-linux-musl \
-        --host=$(uname -m)-alpine-linux-musl \
-        --target=$(uname -m)-alpine-linux-musl \
-        --with-pkgversion="Alpine ${GCC_VERSION}" \
-        --enable-checking=release \
-        --disable-fixed-point \
-        --disable-libmpx \
-        --disable-libmudflap \
-        --disable-libsanitizer \
-        --disable-libssp \
-        --disable-libstdcxx-pch \
-        --disable-multilib \
-        --disable-nls \
-        --disable-symvers \
-        --disable-werror \
-        --enable-__cxa_atexit \
-        --enable-default-pie \
-        --enable-languages=c,c++ \
-        --enable-shared \
-        --enable-threads \
-        --enable-tls \
-        --with-linker-hash-style=gnu \
-        --with-system-zlib && \
-        make --silent -j $(nproc) && \
-        make --silent -j $(nproc) install-strip
 
 COPY all/install-protobuf.sh /tmp
 RUN chmod +x /tmp/install-protobuf.sh
