@@ -30,6 +30,7 @@ printUsage() {
     echo " --with-typescript              Generate TypeScript declaration files (.d.ts files) - see https://github.com/improbable-eng/ts-protoc-gen#readme"
     echo " --go-source-relative           Make go import paths 'source_relative' - see https://github.com/golang/protobuf#parameters"
     echo " --go-package-map               Map proto imports to go import paths"
+    echo " --validate-out                 Generate validate files. - see https://github.com/envoyproxy/protoc-gen-validate"
     echo " --no-google-includes           Don't include Google protobufs"
     echo " --descr-include-imports        When using --descriptor_set_out, also include all dependencies of the input files in the set, so that the set is
                                              self-contained"
@@ -56,6 +57,7 @@ NO_GOOGLE_INCLUDES=false
 DESCR_INCLUDE_IMPORTS=false
 DESCR_INCLUDE_SOURCE_INFO=false
 DESCR_FILENAME="descriptor_set.pb"
+VALIDATE_OUT_STRING=""
 
 while test $# -gt 0; do
     case "$1" in
@@ -142,6 +144,12 @@ while test $# -gt 0; do
                 GO_PACKAGE_MAP=$2,
 		        shift
             fi
+            shift
+            ;;
+        --validate-out)
+            shift
+            VALIDATE_OUT_STRING="--validate_out=$1"
+            echo "VALIDATE_OUT_STRING: ${VALIDATE_OUT_STRING}"
             shift
             ;;
         --no-google-includes)
@@ -273,6 +281,8 @@ fi
 if [[ $GEN_TYPESCRIPT == true ]]; then
     GEN_STRING="$GEN_STRING --ts_out=$OUT_DIR"
 fi
+
+GEN_STRING="$GEN_STRING ${VALIDATE_OUT_STRING} "
 
 LINT_STRING=''
 if [[ $LINT == true ]]; then
