@@ -19,6 +19,6 @@ else
       tag=${CONTAINER}/${build}:${GRPC_VERSION}_${BUILD_VERSION}
       latest_tag=${CONTAINER}/${build}:latest
       echo "building ${build} container with tag ${tag}"
-      docker pull $DEV_REPO && docker tag ${dev_tag} ${tag} && docker tag ${dev_tag} ${latest_tag} && docker push ${tag} && docker push ${latest_tag};
+      docker pull ${dev_tag} && docker tag ${dev_tag} ${tag} && docker tag ${dev_tag} ${latest_tag} && docker push ${tag} && docker push ${latest_tag};
   done
 fi
