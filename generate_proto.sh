@@ -8,5 +8,5 @@ echo "WORK_HOME = $WORK_HOME"
 find $WORK_HOME -name "*.proto" | while read proto; do
   dir="`dirname $proto`"
   echo "dir: $dir"
-  docker run --rm -v $dir:/defs -v ${IMPORT_HOME}:/input blademainer/protoc-all:1.23_v0.0.3 -i /defs -i /input -d /defs/ -l go -o /defs --validate-out "lang=go:/defs" --with-docs --with-gateway --lint $addition;
+  docker run --rm -v $dir:/defs -v ${IMPORT_HOME}:/input blademainer/protoc-all:latest -i /defs -i /input -d /defs/ -l go -o /defs --validate-out "lang=go:/defs" --with-docs --with-gateway --lint $addition;
 done
